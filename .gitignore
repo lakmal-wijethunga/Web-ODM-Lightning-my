@@ -24,6 +24,11 @@ client_secret*.json
 *.obj
 *.mtl
 
+# ...except the small bundled demo COG, which is committed on purpose so the
+# viewer has something to render before your first real publish.
+# Delete projects/demo/ once you have a real project.
+!projects/demo/orthophoto.tif
+
 # logs / os cruft
 *.log
 npm-debug.log*
