@@ -140,6 +140,15 @@ async function main() {
   step('Extracting');
   await extractZip(zipPath, extractDir);
 
+  // Reclaim the archive immediately — on a 4-5GB task backup this is the
+  // difference between fitting on the runner and dying with ENOSPC halfway
+  // through conversion. Only safe for a copy we downloaded ourselves; a
+  // locally-supplied --zip belongs to the user and is never touched.
+  if (!localZip) {
+    await rm(zipPath, { force: true });
+    log('removed local copy of the archive to free disk');
+  }
+
   const assets = await discoverAssets(extractDir);
   for (const asset of assets.values()) {
     log(`found ${asset.label.padEnd(22)} ${formatBytes(asset.bytes)}`);

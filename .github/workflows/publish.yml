@@ -109,12 +109,28 @@ jobs:
           BRAND_LOGO_URL: ${{ vars.BRAND_LOGO_URL }}
           BRAND_ORG: ${{ vars.BRAND_ORG }}
         run: |
-          if [ -z "$VIEWER_PASSWORD" ]; then
-            echo "::error::Secret '${{ inputs.password_secret }}' is empty or does not exist."
-            echo "Create it under Settings > Secrets and variables > Actions."
+          missing=""
+          [ -z "$VIEWER_PASSWORD" ]      && missing="$missing ${{ inputs.password_secret }}"
+          [ -z "$GOOGLE_CLIENT_ID" ]     && missing="$missing GOOGLE_CLIENT_ID"
+          [ -z "$GOOGLE_CLIENT_SECRET" ] && missing="$missing GOOGLE_CLIENT_SECRET"
+          [ -z "$GOOGLE_REFRESH_TOKEN" ] && missing="$missing GOOGLE_REFRESH_TOKEN"
+          [ -z "$GDRIVE_ROOT_FOLDER_ID" ] && missing="$missing GDRIVE_ROOT_FOLDER_ID"
+
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing"
+            echo "Add them under Settings > Secrets and variables > Actions."
+            echo "See docs/SETUP.md for how to obtain each value."
             exit 1
           fi
+
+          df -h / | tail -1
           node tools/publish.mjs
+
+      - name: Disk report on failure
+        if: failure()
+        run: |
+          echo "Disk at time of failure:"; df -h / | tail -1
+          echo "Largest paths under .work:"; du -sh .work/* 2>/dev/null | sort -rh | head -5 || true
 
       - name: Commit manifest
         run: |
