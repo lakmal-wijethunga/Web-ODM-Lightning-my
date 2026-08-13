@@ -1,0 +1,143 @@
+name: Publish task
+
+# Manual trigger: you drop a WebODM task .zip in Drive, then run this with the
+# file ID. The runner does the heavy conversion so nothing large is ever
+# uploaded from your machine twice.
+on:
+  workflow_dispatch:
+    inputs:
+      drive_file_id:
+        description: 'Google Drive file ID of the WebODM task .zip'
+        required: true
+        type: string
+      title:
+        description: 'Project title shown to the client'
+        required: true
+        type: string
+      slug:
+        description: 'Share slug (leave blank for a random unguessable one)'
+        required: false
+        type: string
+      client:
+        description: 'Client name (optional, shown in the viewer)'
+        required: false
+        type: string
+      captured_on:
+        description: 'Capture date, e.g. 2026-08-12 (optional)'
+        required: false
+        type: string
+      password_secret:
+        description: 'Name of the repo secret holding this project password (default VIEWER_PASSWORD)'
+        required: false
+        default: 'VIEWER_PASSWORD'
+        type: string
+      skip_pointcloud:
+        description: 'Skip 3D point cloud conversion (faster, 2D only)'
+        required: false
+        default: false
+        type: boolean
+
+# Serialise publishes — they all commit to main, and concurrent runs would
+# race on the manifest commit.
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350 # just under the 6h job ceiling
+
+    steps:
+      # A stock runner has only ~14GB free, and zip + extracted + converted can
+      # easily run 3x the task size. Reclaiming preinstalled toolchains buys
+      # roughly another 30GB and costs about 30 seconds.
+      - name: Reclaim disk space
+        run: |
+          echo "before:"; df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android \
+                      /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          echo "after:"; df -h / | tail -1
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install GDAL and PDAL
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends gdal-bin pdal unzip
+          gdalinfo --version
+          pdal --version | head -1
+
+      - run: npm ci
+
+      - name: Publish
+        env:
+          # Ingest + storage credentials. A refresh token is used rather than a
+          # service account because service accounts have no Drive storage
+          # quota of their own on a consumer Google account.
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GDRIVE_ROOT_FOLDER_ID: ${{ secrets.GDRIVE_ROOT_FOLDER_ID }}
+
+          STORAGE_DRIVER: ${{ vars.STORAGE_DRIVER || 'drive' }}
+          HF_REPO_ID: ${{ vars.HF_REPO_ID }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
+          # Read indirectly so each project can have its own secret. Never make
+          # this a workflow input: this repo is public, and so are its Actions
+          # logs and run parameters. Secrets are masked; inputs are not.
+          VIEWER_PASSWORD: ${{ secrets[inputs.password_secret] }}
+
+          SOURCE_DRIVE_FILE_ID: ${{ inputs.drive_file_id }}
+          SLUG: ${{ inputs.slug }}
+          TITLE: ${{ inputs.title }}
+          CLIENT: ${{ inputs.client }}
+          CAPTURED_ON: ${{ inputs.captured_on }}
+          SKIP_POINTCLOUD: ${{ inputs.skip_pointcloud && '1' || '0' }}
+
+          BRAND_COLOR: ${{ vars.BRAND_COLOR }}
+          BRAND_LOGO_URL: ${{ vars.BRAND_LOGO_URL }}
+          BRAND_ORG: ${{ vars.BRAND_ORG }}
+        run: |
+          if [ -z "$VIEWER_PASSWORD" ]; then
+            echo "::error::Secret '${{ inputs.password_secret }}' is empty or does not exist."
+            echo "Create it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          node tools/publish.mjs
+
+      - name: Commit manifest
+        run: |
+          if [ -z "$(git status --porcelain projects/)" ]; then
+            echo "No manifest changes to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add projects/
+          git commit -m "Publish: ${{ inputs.title }}"
+          git push
+
+      - name: Summary
+        if: success()
+        run: |
+          SLUG=$(ls -t projects | head -1)
+          {
+            echo "### Published"
+            echo ""
+            echo "**${{ inputs.title }}**"
+            echo ""
+            echo "Share link: \`https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/#/$SLUG\`"
+            echo ""
+            echo "The password is whatever you stored in the \`${{ inputs.password_secret }}\` secret."
+          } >> "$GITHUB_STEP_SUMMARY"

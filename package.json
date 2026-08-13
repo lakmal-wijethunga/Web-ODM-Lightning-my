@@ -1,0 +1,25 @@
+{
+  "name": "webodm-share",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-hosted WebODM Lightning alternative: publish drone survey results as private, streamable client links on GitHub Pages",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node tools/build-viewer.mjs",
+    "dev": "node tools/build-viewer.mjs --serve",
+    "publish": "node tools/publish.mjs",
+    "benchmark": "node tools/benchmark.mjs",
+    "auth:google": "node tools/auth-google.mjs"
+  },
+  "dependencies": {
+    "copc": "^0.0.9",
+    "ol": "^10.10.0",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

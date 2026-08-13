@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <!-- Deliberately generic until the manifest is decrypted: the page must not
+         leak a client's project name to anyone who merely opens the link. -->
+    <title>Survey viewer</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Password gate -->
+    <section id="gate" class="gate" hidden>
+      <form id="gate-form" class="gate__card" autocomplete="off">
+        <h1 class="gate__title">Protected survey</h1>
+        <p class="gate__hint">This link is password protected. Enter the password you were given.</p>
+        <label class="gate__label" for="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          class="gate__input"
+          autocomplete="current-password"
+          required
+        />
+        <button id="gate-submit" type="submit" class="btn btn--primary gate__btn">Unlock</button>
+        <p id="gate-error" class="gate__error" role="alert" hidden></p>
+      </form>
+    </section>
+
+    <!-- Loading / error states -->
+    <section id="status" class="status" hidden>
+      <div class="status__inner">
+        <div class="spinner" aria-hidden="true"></div>
+        <p id="status-text">Loading…</p>
+      </div>
+    </section>
+
+    <!-- Main application -->
+    <div id="app" class="app" hidden>
+      <header class="topbar">
+        <div class="topbar__brand">
+          <img id="brand-logo" class="topbar__logo" alt="" hidden />
+          <div class="topbar__titles">
+            <h1 id="project-title" class="topbar__title"></h1>
+            <p id="project-meta" class="topbar__meta"></p>
+          </div>
+        </div>
+        <nav class="tabs" role="tablist">
+          <button class="tab" data-tab="map2d" role="tab" aria-selected="true">2D Map</button>
+          <button class="tab" data-tab="cloud3d" role="tab" aria-selected="false">3D</button>
+          <button class="tab" data-tab="downloads" role="tab" aria-selected="false">Files</button>
+        </nav>
+      </header>
+
+      <main class="panels">
+        <!-- 2D -->
+        <section class="panel" data-panel="map2d">
+          <div id="map" class="map"></div>
+
+          <button id="layers-toggle" class="fab" aria-label="Layers" aria-expanded="false">
+            Layers
+          </button>
+
+          <aside id="layers" class="layers" hidden>
+            <h2 class="layers__heading">Layers</h2>
+            <div id="layer-list" class="layers__list"></div>
+
+            <h2 class="layers__heading">Measure</h2>
+            <div class="measure">
+              <button class="btn measure__btn" data-measure="distance">Distance</button>
+              <button class="btn measure__btn" data-measure="area">Area</button>
+              <button class="btn measure__btn" data-measure="clear">Clear</button>
+            </div>
+            <p class="layers__note">
+              Measurements are geodesic — computed on the ellipsoid, not in screen units.
+            </p>
+          </aside>
+
+          <div id="readout" class="readout" hidden>
+            <span id="readout-coords" class="readout__coords"></span>
+            <span id="readout-elev" class="readout__elev"></span>
+          </div>
+        </section>
+
+        <!-- 3D -->
+        <section class="panel" data-panel="cloud3d" hidden>
+          <div id="cloud" class="cloud"></div>
+          <div id="cloud-status" class="cloud__status"></div>
+        </section>
+
+        <!-- Downloads -->
+        <section class="panel panel--scroll" data-panel="downloads" hidden>
+          <div class="downloads">
+            <h2 class="downloads__heading">Original files</h2>
+            <p class="downloads__note">
+              Full-resolution source assets exactly as produced by processing.
+            </p>
+            <ul id="download-list" class="downloads__list"></ul>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="assets/main.js"></script>
+  </body>
+</html>

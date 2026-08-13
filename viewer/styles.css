@@ -1,0 +1,242 @@
+/* Client-facing viewer styling.
+   Mobile-first: the layer panel is a slide-over sheet on small screens and a
+   docked sidebar from 720px up. --brand is overwritten at runtime from the
+   decrypted manifest, so per-project branding needs no rebuild. */
+
+:root {
+  --brand: #2563eb;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --text: #14181f;
+  --text-dim: #5b6472;
+  --border: #dfe3e9;
+  --danger: #b42318;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 8px 24px rgb(16 24 40 / 8%);
+  --topbar-h: 60px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1116;
+    --surface: #161b22;
+    --surface-2: #1f2630;
+    --text: #e8edf4;
+    --text-dim: #99a3b3;
+    --border: #2a323d;
+    --danger: #ff7b72;
+    --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 45%);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+[hidden] { display: none !important; }
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 9px 14px;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  min-height: 40px; /* comfortable tap target */
+}
+.btn:hover { background: var(--surface-2); }
+.btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.btn--primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn--primary:hover { filter: brightness(1.08); }
+.btn.is-active { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+/* ---------- Password gate ---------- */
+.gate {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--bg);
+}
+.gate__card {
+  width: min(100%, 380px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: var(--shadow);
+}
+.gate__title { margin: 0 0 6px; font-size: 20px; }
+.gate__hint { margin: 0 0 20px; color: var(--text-dim); font-size: 14px; }
+.gate__label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+.gate__input {
+  width: 100%;
+  padding: 11px 12px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.gate__input:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.gate__btn { width: 100%; margin-top: 16px; }
+.gate__error { margin: 14px 0 0; color: var(--danger); font-size: 14px; }
+
+/* ---------- Status ---------- */
+.status { position: fixed; inset: 0; display: grid; place-items: center; background: var(--bg); }
+.status__inner { text-align: center; color: var(--text-dim); }
+.spinner {
+  width: 30px; height: 30px; margin: 0 auto 14px;
+  border: 3px solid var(--border);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
+
+/* ---------- Layout ---------- */
+.app { display: flex; flex-direction: column; height: 100%; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: var(--topbar-h);
+  padding: 0 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex: none;
+}
+.topbar__brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.topbar__logo { height: 30px; width: auto; max-width: 120px; object-fit: contain; }
+.topbar__titles { min-width: 0; }
+.topbar__title {
+  margin: 0; font-size: 15px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.topbar__meta { margin: 0; font-size: 12px; color: var(--text-dim); }
+
+.tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: var(--radius); flex: none; }
+.tab {
+  appearance: none; border: 0; background: transparent; color: var(--text-dim);
+  font: inherit; font-weight: 500; padding: 7px 13px; border-radius: 7px; cursor: pointer;
+  min-height: 36px;
+}
+.tab[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+
+.panels { position: relative; flex: 1; min-height: 0; }
+.panel { position: absolute; inset: 0; }
+.panel--scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+/* ---------- 2D map ---------- */
+.map, .cloud { position: absolute; inset: 0; background: var(--surface-2); }
+.map canvas { outline: none; }
+
+.fab {
+  position: absolute; top: 12px; right: 12px; z-index: 5;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  padding: 9px 14px; border-radius: var(--radius); box-shadow: var(--shadow);
+  font: inherit; font-weight: 500; cursor: pointer; min-height: 40px;
+}
+
+.layers {
+  position: absolute; z-index: 6;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  overflow-y: auto;
+  /* Mobile: bottom sheet */
+  left: 0; right: 0; bottom: 0;
+  max-height: 62%;
+  border-radius: 14px 14px 0 0;
+  padding: 16px;
+}
+.layers__heading {
+  margin: 0 0 10px; font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim);
+}
+.layers__heading + * { margin-bottom: 18px; }
+.layers__list { display: flex; flex-direction: column; gap: 14px; }
+.layers__note { margin: 10px 0 0; font-size: 12px; color: var(--text-dim); }
+
+.layer { display: flex; flex-direction: column; gap: 7px; }
+.layer__row { display: flex; align-items: center; gap: 9px; }
+.layer__name { font-size: 14px; font-weight: 500; flex: 1; }
+.layer__size { font-size: 11px; color: var(--text-dim); }
+.layer input[type="range"] { width: 100%; accent-color: var(--brand); }
+.layer input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--brand); }
+
+.measure { display: flex; gap: 8px; flex-wrap: wrap; }
+.measure__btn { flex: 1; min-width: 88px; }
+
+.readout {
+  position: absolute; left: 12px; bottom: 12px; z-index: 5;
+  display: flex; gap: 12px; flex-wrap: wrap;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 8px 12px; font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  max-width: calc(100% - 24px);
+}
+.readout__elev { font-weight: 600; color: var(--brand); }
+
+/* OpenLayers measurement tooltips */
+.ol-tooltip {
+  background: rgb(0 0 0 / 78%); color: #fff;
+  padding: 4px 8px; border-radius: 5px;
+  font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.ol-tooltip--static { background: var(--brand); }
+
+/* ---------- 3D ---------- */
+.cloud__status {
+  position: absolute; left: 12px; bottom: 12px; z-index: 5;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 8px 12px; font-size: 12px; color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Downloads ---------- */
+.downloads { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+.downloads__heading { margin: 0 0 4px; font-size: 17px; }
+.downloads__note { margin: 0 0 18px; color: var(--text-dim); font-size: 14px; }
+.downloads__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.download {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 14px;
+}
+.download__text { min-width: 0; flex: 1; }
+.download__name {
+  display: block; font-weight: 500; font-size: 14px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.download__meta { font-size: 12px; color: var(--text-dim); }
+
+/* ---------- Desktop ---------- */
+@media (min-width: 720px) {
+  .topbar { padding: 0 18px; }
+  .topbar__title { font-size: 16px; }
+  .layers {
+    left: auto; right: 12px; top: 64px; bottom: auto;
+    width: 288px; max-height: calc(100% - 88px);
+    border-radius: 14px;
+  }
+  .fab { display: none; }
+  .layers[hidden] { display: block !important; }
+}
