@@ -1,0 +1,15 @@
+# Secrets — the uploader's GitHub token lives here. Never commit.
+.env
+*.env
+!.env.example
+
+# Uploader working state
+uploader/.state/
+uploader/.tmp/
+
+node_modules/
+npm-debug.log*
+
+# OS noise
+Thumbs.db
+.DS_Store

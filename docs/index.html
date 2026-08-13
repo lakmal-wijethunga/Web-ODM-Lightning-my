@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebODM Backup Hub</title>
+<meta name="description" content="Archived WebODM task backups — orthophotos, point clouds, terrain models and reports.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛰️</text></svg>">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <path fill="currentColor" d="M12 2 2 7l10 5 10-5-10-5Zm0 7.7L4.6 6 12 2.3 19.4 6 12 9.7ZM2 12l10 5 10-5-1.8-.9L12 15 3.8 11.1 2 12Zm0 5 10 5 10-5-1.8-.9L12 20 3.8 16.1 2 17Z"/>
+      </svg>
+      <span>WebODM <b>Backup Hub</b></span>
+    </div>
+    <a class="repo-link" id="repoLink" href="#" target="_blank" rel="noopener">…</a>
+  </div>
+</header>
+
+<div class="stats" id="stats"></div>
+
+<main class="wrap">
+
+  <div class="toolbar">
+    <div class="search">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+        <path fill="currentColor" d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5Zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z"/>
+      </svg>
+      <input type="search" id="q" placeholder="Search tasks, projects, tags…" autocomplete="off">
+    </div>
+    <select id="projectFilter"><option value="">All projects</option></select>
+    <select id="sort">
+      <option value="date">Newest first</option>
+      <option value="date-asc">Oldest first</option>
+      <option value="size">Largest first</option>
+      <option value="name">Name A–Z</option>
+    </select>
+    <button id="mapToggle" class="ghost" aria-expanded="true">Hide map</button>
+  </div>
+
+  <section class="map-card" id="mapCard">
+    <div id="map"></div>
+    <p class="map-hint" id="mapHint"></p>
+  </section>
+
+  <div id="results"></div>
+
+  <div id="empty" class="empty hidden">
+    <h2>No backups archived yet</h2>
+    <p>Run <code>npm run upload</code> locally, then drop a WebODM task backup
+       (<em>Download Assets → Backup</em>) to publish it here.</p>
+  </div>
+
+  <div id="loadError" class="empty hidden">
+    <h2>Could not load the archive index</h2>
+    <p><code>manifest.json</code> failed to load. If you have just enabled GitHub Pages,
+       give it a minute and refresh.</p>
+  </div>
+
+</main>
+
+<footer class="foot">
+  <span id="generated"></span>
+  <span>Backups are stored as GitHub Release assets. Downloads are served directly by GitHub.</span>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
