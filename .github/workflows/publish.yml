@@ -36,6 +36,11 @@ on:
         required: false
         default: false
         type: boolean
+      include_originals:
+        description: 'Also upload full-resolution originals for client download (roughly doubles storage used)'
+        required: false
+        default: true
+        type: boolean
 
 # Serialise publishes — they all commit to main, and concurrent runs would
 # race on the manifest commit.
@@ -104,6 +109,7 @@ jobs:
           CLIENT: ${{ inputs.client }}
           CAPTURED_ON: ${{ inputs.captured_on }}
           SKIP_POINTCLOUD: ${{ inputs.skip_pointcloud && '1' || '0' }}
+          INCLUDE_ORIGINALS: ${{ inputs.include_originals && '1' || '0' }}
 
           BRAND_COLOR: ${{ vars.BRAND_COLOR }}
           BRAND_LOGO_URL: ${{ vars.BRAND_LOGO_URL }}
